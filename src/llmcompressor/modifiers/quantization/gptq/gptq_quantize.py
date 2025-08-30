@@ -153,22 +153,23 @@ def quantize_weight(
     W[:, dead] = 0
 
     # compute inverse hessian in place to save memory
-    try:
-        damp = percdamp * torch.mean(torch.diag(H))
-        diag = torch.arange(H.shape[0], device=H.device)
-        H[diag, diag] += damp
-        H = torch.linalg.cholesky(H)
-        H = torch.cholesky_inverse(H)
-        H = torch.linalg.cholesky(H, upper=True)
-        Hinv = H
-    except torch._C._LinAlgError:
-        logger.warning(
-            "Failed to invert hessian due to numerical instability. Consider "
-            "increasing GPTQModifier.dampening_frac, increasing the number "
-            "of calibration samples, or shuffling the calibration dataset. "
-            "Falling back to round-to-nearest for this module."
-        )
-        Hinv = H = torch.eye(num_columns, dtype=H.dtype, device=H.device)
+    # try:
+    #     damp = percdamp * torch.mean(torch.diag(H))
+    #     diag = torch.arange(H.shape[0], device=H.device)
+    #     H[diag, diag] += damp
+    #     H = torch.linalg.cholesky(H)
+    #     H = torch.cholesky_inverse(H)
+    #     H = torch.linalg.cholesky(H, upper=True)
+    #     Hinv = H
+    # except torch._C._LinAlgError:
+    #     logger.warning(
+    #         "Failed to invert hessian due to numerical instability. Consider "
+    #         "increasing GPTQModifier.dampening_frac, increasing the number "
+    #         "of calibration samples, or shuffling the calibration dataset. "
+    #         "Falling back to round-to-nearest for this module."
+    #     )
+    #     Hinv = H = torch.eye(num_columns, dtype=H.dtype, device=H.device)
+    Hinv = H = torch.eye(num_columns, dtype=H.dtype, device=H.device)
 
     # See section 3.4 of https://arxiv.org/abs/2203.07259
     for i1 in range(0, num_columns, blocksize):
